@@ -2,12 +2,14 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from app.database import engine, Base
-from app import models  # noqa: F401 -- ensures all models are registered with Base
+from app import models  # noqa: F401
+from app.routers import auth_router
 
-# Create all tables defined in our models (if they don't already exist)
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="StockFlow API", version="1.0.0")
+
+app.include_router(auth_router.router)
 
 
 @app.get("/")

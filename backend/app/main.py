@@ -2,8 +2,8 @@ from fastapi import FastAPI, Depends
 from sqlalchemy import text
 
 from app.database import engine, Base
-from app import models  # noqa: F401 -- ensures all models are registered with Base
-from app.routers import auth_router, user_router, product_router, order_router
+from app import models  # noqa: F401
+from app.routers import auth_router, user_router, product_router, order_router, invoice_router
 from app.core.deps import get_current_user
 from app.models.user import User
 
@@ -15,6 +15,7 @@ app.include_router(auth_router.router)
 app.include_router(user_router.router)
 app.include_router(product_router.router)
 app.include_router(order_router.router)
+app.include_router(invoice_router.router)
 
 
 @app.get("/")

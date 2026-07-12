@@ -5,6 +5,11 @@ backend/**/__pycache__/
 backend/.env
 backend/*.pyc
 
+# Catch a venv folder at the project root too, just in case
+venv/
+__pycache__/
+*.pyc
+
 # Frontend (for later phases)
 frontend/node_modules/
 frontend/dist/

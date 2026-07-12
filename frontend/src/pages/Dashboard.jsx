@@ -3,6 +3,8 @@ import { DollarSign, ShoppingBag, Package, AlertTriangle } from 'lucide-react';
 import axiosClient from '../api/axiosClient';
 import Layout from '../components/Layout';
 import RoleGuard from '../components/RoleGuard';
+import RevenueChart from '../components/RevenueChart';
+import TopProductsChart from '../components/TopProductsChart';
 import { useAuth } from '../context/AuthContext';
 
 function StatCard({ icon: Icon, label, value, tone }) {
@@ -25,79 +27,94 @@ function StatCard({ icon: Icon, label, value, tone }) {
   );
 }
 
+const PERIOD_OPTIONS = [
+  { label: '7 days', value: 7 },
+  { label: '30 days', value: 30 },
+  { label: '90 days', value: 90 },
+];
+
 export default function Dashboard() {
   const { user } = useAuth();
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [days, setDays] = useState(30);
 
   useEffect(() => {
-    // STAFF can't access analytics (backend returns 403), so skip the call for them.
     if (user?.role === 'STAFF') {
       setLoading(false);
       return;
     }
+    setLoading(true);
     axiosClient
-      .get('/api/analytics/summary')
+      .get(`/api/analytics/summary?days=${days}`)
       .then((res) => setSummary(res.data))
       .catch(() => setSummary(null))
       .finally(() => setLoading(false));
-  }, [user]);
+  }, [user, days]);
 
   return (
     <Layout>
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm text-gray-500">
-          Welcome back, {user?.full_name} · {user?.role}
-        </p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-sm text-gray-500">
+            Welcome back, {user?.full_name} · {user?.role}
+          </p>
+        </div>
+
+        <RoleGuard allowedRoles={['OWNER', 'MANAGER']}>
+          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-lg p-1">
+            {PERIOD_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setDays(opt.value)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition ${
+                  days === opt.value ? 'bg-blue-600 text-white' : 'text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </RoleGuard>
       </div>
 
       <RoleGuard allowedRoles={['OWNER', 'MANAGER']}>
         {loading ? (
           <p className="text-gray-500 text-sm">Loading dashboard...</p>
         ) : summary ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard
-              icon={DollarSign}
-              label="Total Revenue"
-              value={`₹${summary.total_revenue.toFixed(2)}`}
-              tone="green"
-            />
-            <StatCard icon={ShoppingBag} label="Total Orders" value={summary.total_orders} tone="blue" />
-            <StatCard icon={Package} label="Total Products" value={summary.total_products} tone="purple" />
-            <StatCard
-              icon={AlertTriangle}
-              label="Low Stock Items"
-              value={summary.low_stock_count}
-              tone="red"
-            />
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <StatCard
+                icon={DollarSign}
+                label="Total Revenue"
+                value={`₹${summary.total_revenue.toFixed(2)}`}
+                tone="green"
+              />
+              <StatCard icon={ShoppingBag} label="Total Orders" value={summary.total_orders} tone="blue" />
+              <StatCard icon={Package} label="Total Products" value={summary.total_products} tone="purple" />
+              <StatCard
+                icon={AlertTriangle}
+                label="Low Stock Items"
+                value={summary.low_stock_count}
+                tone="red"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 className="text-base font-bold text-gray-900 mb-4">Revenue Trend</h2>
+                <RevenueChart data={summary.revenue_trend} />
+              </div>
+
+              <div className="bg-white rounded-xl border border-gray-200 p-6">
+                <h2 className="text-base font-bold text-gray-900 mb-4">Top Selling Products</h2>
+                <TopProductsChart data={summary.top_products} />
+              </div>
+            </div>
+          </>
         ) : (
           <p className="text-gray-500 text-sm mb-8">Unable to load analytics right now.</p>
-        )}
-
-        {summary && summary.top_products.length > 0 && (
-          <div className="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 className="text-base font-bold text-gray-900 mb-4">Top Selling Products</h2>
-            <table className="w-full text-sm">
-              <thead className="text-gray-500 text-left">
-                <tr>
-                  <th className="pb-2 font-medium">Product</th>
-                  <th className="pb-2 font-medium text-right">Units Sold</th>
-                  <th className="pb-2 font-medium text-right">Revenue</th>
-                </tr>
-              </thead>
-              <tbody>
-                {summary.top_products.map((p) => (
-                  <tr key={p.product_id} className="border-t border-gray-100">
-                    <td className="py-2 text-gray-900">{p.product_name}</td>
-                    <td className="py-2 text-right">{p.total_quantity_sold}</td>
-                    <td className="py-2 text-right font-medium">₹{p.total_revenue.toFixed(2)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         )}
       </RoleGuard>
 

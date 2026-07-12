@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends
 from sqlalchemy import text
 
 from app.database import engine, Base
-from app import models  # noqa: F401
+from app import models  # noqa: F401 -- ensures all models are registered with Base
 from app.routers import auth_router, user_router, product_router, order_router
 from app.core.deps import get_current_user
 from app.models.user import User

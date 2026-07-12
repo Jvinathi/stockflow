@@ -51,8 +51,7 @@ def create_order(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    # Any logged-in role (OWNER, MANAGER, STAFF) can create an order —
-    # this is the day-to-day "make a sale" action every employee needs.
+    # Any logged-in role (OWNER, MANAGER, STAFF) can create an order.
 
     # Step 1: Fetch all requested products in ONE query, scoped to this tenant.
     product_ids = [item.product_id for item in payload.items]
@@ -63,9 +62,7 @@ def create_order(
     )
     products_by_id = {p.id: p for p in products}
 
-    # Step 2: Validate every product exists (belongs to this tenant) and has enough stock.
-    # We validate ALL items BEFORE making any changes -- this way, if item #3 of 5
-    # fails, we haven't already decremented stock for items #1 and #2.
+    # Step 2: Validate every product exists and has enough stock BEFORE changing anything.
     for item in payload.items:
         product = products_by_id.get(item.product_id)
         if not product:
@@ -82,9 +79,8 @@ def create_order(
                 ),
             )
 
-    # Step 3: All validations passed -- now build the Order + OrderItems + decrement stock.
-    # Everything below happens in a single DB transaction: either it all commits,
-    # or (if anything raises an exception) none of it is saved.
+    # Step 3: All validations passed -- create Order + OrderItems + decrement stock
+    # as a single atomic transaction.
     try:
         new_order = Order(
             tenant_id=current_user.tenant_id,

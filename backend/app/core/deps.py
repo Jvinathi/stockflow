@@ -19,7 +19,7 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
 
-    token = credentials.credentials  # the raw token string, without "Bearer " prefix
+    token = credentials.credentials  # raw token string, without "Bearer " prefix
     payload = decode_access_token(token)
     if payload is None:
         raise credentials_exception
@@ -36,6 +36,13 @@ def get_current_user(
 
 
 def require_roles(*allowed_roles: RoleEnum):
+    """
+    Usage in a route:
+        @router.post("/products")
+        def create_product(current_user: User = Depends(require_roles(RoleEnum.OWNER, RoleEnum.MANAGER))):
+            ...
+    """
+
     def role_checker(current_user: User = Depends(get_current_user)) -> User:
         if current_user.role not in allowed_roles:
             raise HTTPException(

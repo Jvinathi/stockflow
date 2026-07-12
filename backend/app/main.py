@@ -1,5 +1,8 @@
-from fastapi import FastAPI, Depends
+import logging
+
+from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
 from app.database import engine, Base
@@ -16,6 +19,8 @@ from app.routers import (
 from app.core.deps import get_current_user
 from app.core.scheduler import start_scheduler
 from app.models.user import User
+
+logger = logging.getLogger("stockflow")
 
 Base.metadata.create_all(bind=engine)
 
@@ -36,6 +41,15 @@ app.include_router(order_router.router)
 app.include_router(invoice_router.router)
 app.include_router(notification_router.router)
 app.include_router(analytics_router.router)
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.error(f"Unhandled error on {request.method} {request.url.path}: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "An unexpected error occurred. Please try again later."},
+    )
 
 
 @app.on_event("startup")

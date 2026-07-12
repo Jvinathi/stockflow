@@ -10,6 +10,7 @@ from app.routers import (
     order_router,
     invoice_router,
     notification_router,
+    analytics_router,
 )
 from app.core.deps import get_current_user
 from app.core.scheduler import start_scheduler
@@ -25,6 +26,7 @@ app.include_router(product_router.router)
 app.include_router(order_router.router)
 app.include_router(invoice_router.router)
 app.include_router(notification_router.router)
+app.include_router(analytics_router.router)
 
 
 @app.on_event("startup")

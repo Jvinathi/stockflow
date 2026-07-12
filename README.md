@@ -2,8 +2,9 @@
 
 A production-style SaaS platform where multiple businesses independently manage inventory, staff roles, orders, and invoices under one shared application — built to demonstrate real-world backend architecture patterns: multi-tenancy, RBAC, background jobs, and transactional data integrity.
 
-**Live demo:** [https://stockflow-swart.vercel.app/](#)
-**API docs:** [https://stockflow-backend-628n.onrender.com/](#)
+**Live demo:** [stockflow-swart.vercel.app](https://stockflow-swart.vercel.app)
+
+**API docs:** [stockflow-backend-628n.onrender.com/docs](https://stockflow-backend-628n.onrender.com/docs)
 
 > Note: the backend is hosted on Render's free tier, which sleeps after 15 minutes of inactivity. The first request may take 30-50 seconds to wake it up.
 

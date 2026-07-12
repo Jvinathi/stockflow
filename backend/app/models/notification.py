@@ -16,6 +16,7 @@ class Notification(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     tenant_id = Column(Integer, ForeignKey("tenants.id"), nullable=False, index=True)
+    product_id = Column(Integer, ForeignKey("products.id"), nullable=True, index=True)
 
     message = Column(String(500), nullable=False)
     type = Column(Enum(NotificationTypeEnum), nullable=False, default=NotificationTypeEnum.LOW_STOCK)
@@ -24,3 +25,4 @@ class Notification(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     tenant = relationship("Tenant", back_populates="notifications")
+    product = relationship("Product")
